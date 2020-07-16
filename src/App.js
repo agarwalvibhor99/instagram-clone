@@ -6,6 +6,7 @@ import { db, auth } from "./firebase";
 import { makeStyles } from "@material-ui/core/styles";
 import Modal from "@material-ui/core/Modal";
 import { Button, Input } from "@material-ui/core";
+import ImageUpload from "./Components/ImageUpload/ImageUpload";
 
 function getModalStyle() {
   const top = 50;
@@ -56,14 +57,16 @@ function App() {
   const [open, setOpen] = useState(false);
   const [openSignIn, setOpenSignIn] = useState(false);
   useEffect(() => {
-    db.collection("post").onSnapshot((snapshot) => {
-      setPosts(
-        snapshot.docs.map((doc, key) => ({
-          id: doc.id,
-          post: doc.data(),
-        }))
-      );
-    });
+    db.collection("post")
+      .orderBy("timestamp", "desc")
+      .onSnapshot((snapshot) => {
+        setPosts(
+          snapshot.docs.map((doc, key) => ({
+            id: doc.id,
+            post: doc.data(),
+          }))
+        );
+      });
   }, []);
 
   const signUp = (event) => {
@@ -91,6 +94,13 @@ function App() {
 
   return (
     <div className="app">
+      {/* ? with user is a option just in case the user is undefined ; Similar to try catch*/}
+      {user?.displayName ? (
+        <ImageUpload username={user.displayName} />
+      ) : (
+        <h3>Sorry you need to login to upload</h3>
+      )}
+
       <Modal open={open} onClose={() => setOpen(false)}>
         <div style={modalStyle} className={classes.paper}>
           <form className="appSignup">
@@ -115,7 +125,7 @@ function App() {
               <Input
                 type="password"
                 placeholder="password"
-                value={username}
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <Button type="submit" onClick={signUp}>
